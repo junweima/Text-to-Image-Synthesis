@@ -10,6 +10,7 @@ from models.gan_factory import gan_factory
 from utils import Utils, Logger
 from PIL import Image
 import os
+from tqdm import tqdm
 
 class Trainer(object):
     def __init__(self, type, dataset, split, lr, diter, vis_screen, save_path, l1_coef, l2_coef, pre_trained_gen, pre_trained_disc, batch_size, num_workers, epochs):
@@ -55,7 +56,7 @@ class Trainer(object):
         self.optimG = torch.optim.Adam(self.generator.parameters(), lr=self.lr, betas=(self.beta1, 0.999))
 
         self.logger = Logger(vis_screen)
-        self.checkpoints_path = 'checkpoints'
+        self.checkpoints_path = '/home/jeremy/Text-to-Image-Synthesis/checkpoints/'
         self.save_path = save_path
         self.type = type
 
@@ -68,6 +69,7 @@ class Trainer(object):
         elif self.type == 'vanilla_wgan':
             self._train_vanilla_wgan()
         elif self.type == 'vanilla_gan':
+            print("here")
             self._train_vanilla_gan()
 
     def _train_wgan(self, cls):
@@ -344,10 +346,10 @@ class Trainer(object):
         l2_loss = nn.MSELoss()
         l1_loss = nn.L1Loss()
         iteration = 0
-
-        for epoch in range(self.num_epochs):
-            for sample in self.data_loader:
+        for epoch in tqdm(range(self.num_epochs)):
+            for sample in tqdm(self.data_loader):
                 iteration += 1
+                # print(iteration)
                 right_images = sample['right_images']
 
                 right_images = Variable(right_images.float()).cuda()
@@ -408,14 +410,13 @@ class Trainer(object):
                 g_loss.backward()
                 self.optimG.step()
 
-                if iteration % 5 == 0:
-                    self.logger.log_iteration_gan(epoch, d_loss, g_loss, real_score, fake_score)
-                    self.logger.draw(right_images, fake_images)
-
-            self.logger.plot_epoch_w_scores(iteration)
+                #if iteration % 5 == 0:
+                #    self.logger.log_iteration_gan(epoch, d_loss, g_loss, real_score, fake_score)
+                #    self.logger.draw(right_images, fake_images)
+            #self.logger.plot_epoch_w_scores(iteration)
 
             if (epoch) % 50 == 0:
-                Utils.save_checkpoint(self.discriminator, self.generator, self.checkpoints_path, epoch)
+                Utils.save_checkpoint(self.discriminator, self.generator, self.checkpoints_path, "", epoch)
 
     def predict(self):
         for sample in self.data_loader:

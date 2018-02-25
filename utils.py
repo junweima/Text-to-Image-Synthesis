@@ -86,7 +86,6 @@ class Utils(object):
         path =  os.path.join(dir_path, subdir_path)
         if not os.path.exists(path):
             os.makedirs(path)
-
         torch.save(netD.state_dict(), '{0}/disc_{1}.pth'.format(path, epoch))
         torch.save(netG.state_dict(), '{0}/gen_{1}.pth'.format(path, epoch))
 
